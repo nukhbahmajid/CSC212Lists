@@ -5,6 +5,7 @@ import edu.smith.cs.csc212.adtr.errors.BadIndexError;
 import edu.smith.cs.csc212.adtr.errors.TODOErr;
 
 
+
 public class DoublyLinkedList<T> extends ListADT<T> {
 	private Node<T> start;
 	private Node<T> end;
@@ -21,24 +22,85 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 	@Override
 	public T removeFront() {
 		checkNotEmpty();
-		throw new TODOErr();
-	}
+		Node<T> originalStart = this.start;
+		this.start = this.start.after;
+		return originalStart.value;
+		
+ 	}
 
 	@Override
 	public T removeBack() {
 		checkNotEmpty();
-		throw new TODOErr();
+		if (this.size() == 1) {
+			Node<T> originalEnd = this.start;
+			this.end = this.start = null;
+			return originalEnd.value;
+		} else {
+			T removedValue = this.end.value;
+			this.end = this.end.before;
+			this.end.after = null;
+			return removedValue;
+		}
+		
 	}
 
 	@Override
 	public T removeIndex(int index) {
 		checkNotEmpty();
-		throw new TODOErr();
+		checkInclusiveIndex(index);
+		int at = 0;
+		Node<T> pointer = this.start; 
+		Node<T> prevNode = null;
+		Node<T> targetNode = null;
+		Node<T> nextNode = null;
+		
+		if (index == 0 | this.size() == 1) {
+			return removeFront();
+
+		} 
+		
+		if(index == this.size() - 1) {
+			return removeBack();
+		} 
+		
+		for (Node<T> current = this.start; current != null; current = current.after) {
+			if (at == index - 1) {
+				prevNode = pointer;
+			}
+			
+			if (at == index) {
+				targetNode = pointer;
+			}
+			
+			if (at == index + 1) {
+				nextNode = pointer;
+				break;
+			}
+			
+			pointer = pointer.after;
+			at++;
+		}
+		
+		prevNode.after = nextNode;
+		nextNode.before = prevNode;
+		return targetNode.value;
 	}
 
 	@Override
 	public void addFront(T item) {
-		throw new TODOErr();
+		Node<T> newStart = new Node<T> (item);
+		
+		if (this.size() == 0) {
+			this.start = newStart;
+			this.end = newStart;
+			return;
+		}
+		
+		this.start.before = newStart;
+		newStart.after = this.start;
+		this.start = newStart;
+
+	
 	}
 
 	@Override
@@ -79,12 +141,22 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 
 	@Override
 	public int size() {
-		throw new TODOErr();
+		int at = 0;
+		
+		for (Node<T> current = this.start; current != null; current = current.after) {
+			at++;
+		}
+		return at;
 	}
 
 	@Override
 	public boolean isEmpty() {
-		throw new TODOErr();
+		if (this.start == this.end && this.start == null) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	/**

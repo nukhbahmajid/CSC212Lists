@@ -134,6 +134,7 @@ public class SinglyLinkedList<T> extends ListADT<T> {
 			pointer = pointer.next;
 			counter++;
 		}
+		
 		Node<T> desiredNode = new Node<T>(item, nextNode);
 		prevNode.next = desiredNode;	
 	}
