@@ -6,6 +6,8 @@ import edu.smith.cs.csc212.adtr.errors.TODOErr;
 
 
 
+
+
 public class DoublyLinkedList<T> extends ListADT<T> {
 	private Node<T> start;
 	private Node<T> end;
@@ -54,7 +56,11 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 		Node<T> targetNode = null;
 		Node<T> nextNode = null;
 		
-		if (index == 0 | this.size() == 1) {
+		if (index < 0 || index > this.size() -1) {
+			throw new BadIndexError(index);
+		}
+		
+		if (index == 0 || this.size() == 1) {
 			return removeFront();
 
 		} 
@@ -62,7 +68,6 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 		if(index == this.size() - 1) {
 			return removeBack();
 		} 
-		
 		for (Node<T> current = this.start; current != null; current = current.after) {
 			if (at == index - 1) {
 				prevNode = pointer;
@@ -74,7 +79,6 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 			
 			if (at == index + 1) {
 				nextNode = pointer;
-				break;
 			}
 			
 			pointer = pointer.after;
@@ -99,7 +103,6 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 		this.start.before = newStart;
 		newStart.after = this.start;
 		this.start = newStart;
-
 	
 	}
 
@@ -117,26 +120,100 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 
 	@Override
 	public void addIndex(int index, T item) {
-		throw new TODOErr();
+		checkNotEmpty();
+		
+		if (index > this.size() || index < 0) {
+			throw new BadIndexError(index);
+		}
+		
+		int counter = 0;
+		if (index == 0) {
+			addFront(item);
+			return;
+		}
+		
+		if (index == this.size()) {
+			addBack(item);
+			return;
+		}
+		// the node before the index desired
+		Node<T> prevNode = this.start; 
+		// the node after the index desired
+		Node<T> nextNode = this.start;
+		// the current node
+		Node<T> pointer = this.start;
+		
+		for(Node<T> node = this.start; node != null; node = node.after) {
+			if(counter == index - 1) {
+				prevNode = pointer;
+			}
+			
+			if(counter == index) {
+				nextNode = pointer;
+			}
+			
+			pointer = pointer.after;
+			counter++;
+		}
+		Node<T> desiredNode = new Node<T>(item);
+		prevNode.after = desiredNode;
+		nextNode.before = desiredNode;
+		desiredNode.before = prevNode;
+		desiredNode.after = nextNode;
+		
+		
 	}
 
 	@Override
 	public T getFront() {
-		throw new TODOErr();
+		checkNotEmpty();
+		return this.start.value;
 	}
 
 	@Override
 	public T getBack() {
-		throw new TODOErr();
+		checkNotEmpty(); 
+		return this.getIndex(this.size() - 1); 
 	}
 	
 	@Override
 	public T getIndex(int index) {
-		throw new TODOErr();
+		checkNotEmpty();
+		int at = 0;
+		for (Node<T> current = this.start; current != null; current = current.after) {
+			if (at++ == index) {
+				return current.value;
+			}
+		}
+		throw new BadIndexError(index);
+		
 	}
 	
 	public void setIndex(int index, T value) {
-		throw new TODOErr();
+		checkNotEmpty();
+		if (index >= this.size() || index < 0) {
+			throw new BadIndexError(index);
+		}
+		
+		if(index == 0) {
+			this.start.value = value;
+		}
+		
+		if(index == this.size() -1) {
+			this.end.value = value;
+		}
+		int counter = 0;
+		Node<T> pointer = this.start;
+		Node<T> targetNode = this.start;
+		
+		for (Node<T> current = this.start; current != null; current = current.after) {
+			if(counter == index) {
+				targetNode = pointer;
+			}
+			pointer = pointer.after;
+			counter++;
+		}
+		targetNode.value = value;
 	}
 
 	@Override
@@ -151,7 +228,7 @@ public class DoublyLinkedList<T> extends ListADT<T> {
 
 	@Override
 	public boolean isEmpty() {
-		if (this.start == this.end && this.start == null) {
+		if (this.start == null) {
 			return true;
 		}
 		else {

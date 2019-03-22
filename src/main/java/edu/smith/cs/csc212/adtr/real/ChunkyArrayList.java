@@ -28,7 +28,11 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 
 	@Override
 	public T removeFront() {
-		throw new TODOErr();
+		if(this.chunks.isEmpty()) {
+			throw new EmptyListError();
+		}
+		T value = this.chunks.getIndex(0).removeFront();
+		return value;
 	}
 
 	@Override
