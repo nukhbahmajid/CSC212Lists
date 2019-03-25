@@ -13,7 +13,7 @@ public class FixedSizeList<T> extends ListADT<T> {
 	 * This keeps track of what we have used and what is left.
 	 */
 	private int fill;
-	
+
 	public FixedSizeList(int maximumSize) {
 		this.array = new Object[maximumSize];
 		this.fill = 0;
