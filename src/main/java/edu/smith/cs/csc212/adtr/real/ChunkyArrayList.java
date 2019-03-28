@@ -142,13 +142,11 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 		int chunkIndex = 0;
 		int start = 0;
 		
-		if (index == 0) {
-			addFront(item);
-			return;	
-		}
 		
 		if (index == this.size()) {
-			
+			FixedSizeList<T> lastChunk = makeChunk();
+			this.chunks.addBack(lastChunk);
+			this.chunks.getBack().addFront(item);
 		}
 		
 		for (FixedSizeList<T> chunk : this.chunks) {
@@ -157,20 +155,51 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 			
 			// Check whether the index should be in this chunk:
 			if (start <= index && index <= end) {
-				if (chunk.isFull()) {
+				if (chunk.isFull()) {					
 					// check can roll to next
 					// or need a new chunk
-					
-					// COMEEEEE HERE U IDIOT
+					if (index == end) {
+						if(!this.chunks.getIndex(chunkIndex +1).isFull()) {
+							this.chunks.getIndex(chunkIndex +1).addFront(item);
+						} else {
+							this.chunks.addIndex(chunkIndex + 1, this.makeChunk());
+							this.chunks.getIndex(chunkIndex + 1).addFront(item);
+						}
+					} else {
+						if(chunkIndex >= this.chunks.size()) {
+							this.chunks.addBack(this.makeChunk());
+							chunkIndex++; 
+							this.chunks.getBack().addFront(item);
+						}
+						/* what if the index is not end */
+						if(!this.chunks.getIndex(chunkIndex +1).isFull()) {
+							T lastInChunk = chunk.removeBack();
+							chunk.addIndex(index - start, item);
+							this.chunks.getIndex(chunkIndex +1).addFront(lastInChunk);
+						} else {
+							this.chunks.addIndex(chunkIndex +1, this.makeChunk());
+							this.chunks.getIndex(chunkIndex +1).addFront(item);
+						}
+					}
 		
 				} else {
 					// put right in this chunk, there's space.
-					throw new TODOErr();
-				}	
+					if(index == end) {
+						chunk.addBack(item);
+						// i don't really think i need to add anything to the end. 
+						end += 1;
+					} else {
+						chunk.addIndex(index - start, item);
+					}
+				}
+				return;
 				// upon adding, return.
 				// return;
 			}
-			
+			// testing if there are an empty chunks and removing them
+			if(chunk.isEmpty()) {
+				this.chunks.removeIndex(chunkIndex);
+			}
 			// update bounds of next chunk.
 			start = end;
 			chunkIndex++;
@@ -240,6 +269,14 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 	@Override
 	public boolean isEmpty() {
 		return this.chunks.isEmpty();
+	}
+	
+	public int totalNumChunks() {
+		int chunkNum = 0;
+		for (FixedSizeList<T> chunk : this.chunks) {
+			chunkNum += 1;
+		}
+		return chunkNum;
 	}
 	
 }
