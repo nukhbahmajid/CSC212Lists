@@ -138,15 +138,22 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 	public void addIndex(int index, T item) {
 		// THIS IS THE HARDEST METHOD IN CHUNKY-ARRAY-LIST.
 		// DO IT LAST.
+		checkInclusiveIndex(index);
 		
 		int chunkIndex = 0;
 		int start = 0;
 		
+		if (this.chunks.isEmpty()) {
+			this.chunks.addFront(this.makeChunk());
+			this.chunks.getFront().addFront(item);
+			return;
+		}
 		
 		if (index == this.size()) {
 			FixedSizeList<T> lastChunk = makeChunk();
 			this.chunks.addBack(lastChunk);
 			this.chunks.getBack().addFront(item);
+			return;
 		}
 		
 		for (FixedSizeList<T> chunk : this.chunks) {
@@ -159,26 +166,29 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 					// check can roll to next
 					// or need a new chunk
 					if (index == end) {
-						if(!this.chunks.getIndex(chunkIndex +1).isFull()) {
-							this.chunks.getIndex(chunkIndex +1).addFront(item);
-						} else {
+						// error always occurs on the following if statement
 							this.chunks.addIndex(chunkIndex + 1, this.makeChunk());
 							this.chunks.getIndex(chunkIndex + 1).addFront(item);
-						}
+							return;
+						
 					} else {
 						if(chunkIndex >= this.chunks.size()) {
 							this.chunks.addBack(this.makeChunk());
 							chunkIndex++; 
 							this.chunks.getBack().addFront(item);
+							return;
 						}
-						/* what if the index is not end */
-						if(!this.chunks.getIndex(chunkIndex +1).isFull()) {
+						/* what if the index is not end 
+						 * AND THE ERROR IS ON THE FOLLOWING LINE */ 
+						if(!this.chunks.getIndex(chunkIndex +1).isFull() && chunk != this.chunks.getBack()) {
 							T lastInChunk = chunk.removeBack();
 							chunk.addIndex(index - start, item);
 							this.chunks.getIndex(chunkIndex +1).addFront(lastInChunk);
+							return;
 						} else {
 							this.chunks.addIndex(chunkIndex +1, this.makeChunk());
 							this.chunks.getIndex(chunkIndex +1).addFront(item);
+							return;
 						}
 					}
 		
@@ -188,8 +198,10 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 						chunk.addBack(item);
 						// i don't really think i need to add anything to the end. 
 						end += 1;
+						return;
 					} else {
 						chunk.addIndex(index - start, item);
+						
 					}
 				}
 				return;
