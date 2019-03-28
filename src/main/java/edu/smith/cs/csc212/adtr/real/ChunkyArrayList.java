@@ -43,25 +43,12 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 		FixedSizeList<T> firstChunk = this.chunks.getFront();
 		T removedValue = firstChunk.getFront();
 		
-		if(this.chunks.size() == 1) {
-			return firstChunk.removeFront();
+		if(firstChunk.size() == 1) {
+			firstChunk.removeFront();
+			this.chunks.removeFront();
 		} else {
-			for(int i = 0; i < this.chunks.size() - 1; i++) {
-				FixedSizeList<T> current = this.chunks.getIndex(i);
-				FixedSizeList<T> nextChunk = this.chunks.getIndex(i+1);
-				current.removeFront();
-				current.addBack(nextChunk.getFront());
-				
-				if(i+1 == this.chunks.size() -1) {
-					nextChunk.removeFront();
-				}
-				
-				if(chunks.getBack().size() == 0) {
-					chunks.removeBack();
-				}
-			}
+			firstChunk.removeFront();
 		}
-		
 		return removedValue;
 	}
 
@@ -89,17 +76,23 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 		checkInclusiveIndex(index);
 		
 		int start = 0;
+		int chunkIndex = 0;
 		for (FixedSizeList<T> chunk : this.chunks) {
 			// calculate bounds of this chunk.
 			int end = start + chunk.size();
 			
 			// Check whether the index should be in this chunk:
 			if (start <= index && index < end) {
-				return chunk.removeIndex(index - start);
+				T deleted = chunk.removeIndex(index - start);
+				if (chunk.isEmpty()) {
+					chunks.removeIndex(chunkIndex);
+				}
+				return deleted;
 			}
 			
 			// update bounds of next chunk.
 			start = end;
+			chunkIndex++;
 		}
 		throw new BadIndexError(index);
 	}
@@ -172,24 +165,23 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 							return;
 						
 					} else {
-						if(chunkIndex >= this.chunks.size()) {
+						// make a new chunk if we need:
+						if(chunkIndex + 1 >= this.chunks.size()) {
 							this.chunks.addBack(this.makeChunk());
-							chunkIndex++; 
-							this.chunks.getBack().addFront(item);
-							return;
+						} else if (this.chunks.getIndex(chunkIndex +1).isFull()) {
+							this.chunks.addIndex(chunkIndex+1, makeChunk());
 						}
-						/* what if the index is not end 
-						 * AND THE ERROR IS ON THE FOLLOWING LINE */ 
-						if(!this.chunks.getIndex(chunkIndex +1).isFull() && chunk != this.chunks.getBack()) {
+						
+						// put it where it belongs
+						if (index != end) {
 							T lastInChunk = chunk.removeBack();
-							chunk.addIndex(index - start, item);
 							this.chunks.getIndex(chunkIndex +1).addFront(lastInChunk);
+							chunk.addIndex(index - start, item);
 							return;
 						} else {
-							this.chunks.addIndex(chunkIndex +1, this.makeChunk());
 							this.chunks.getIndex(chunkIndex +1).addFront(item);
-							return;
 						}
+						return;
 					}
 		
 				} else {
@@ -218,6 +210,8 @@ public class ChunkyArrayList<T> extends ListADT<T> {
 		}
 		throw new BadIndexError(index);
 	}
+	
+	
 	
 	@Override
 	public T getFront() {
